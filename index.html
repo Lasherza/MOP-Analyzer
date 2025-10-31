@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITIL 4 Change Enablement MOP Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>?? ITIL 4 Change Enablement MOP Analyzer</h1>
+            <p class="subtitle">Analyze Method of Procedure documents based on ITIL 4 best practices</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Category Selection Section -->
+            <section class="card">
+                <h2>?? Select Telco Category</h2>
+                <div class="form-group">
+                    <label for="category">Choose the appropriate category for your MOP:</label>
+                    <select id="category" class="form-control">
+                        <option value="">-- Select Category --</option>
+                        <option value="ipcore">IPCORE</option>
+                        <option value="packet-core">Packet Core</option>
+                        <option value="billing">Billing and Revenue Management</option>
+                        <option value="radio">Radio Network</option>
+                        <option value="transmission">Transmission Network</option>
+                        <option value="devops">DevOps and Systems (OSS and BSS)</option>
+                        <option value="it">IT</option>
+                        <option value="cyber">Cyber Security</option>
+                        <option value="data">Data Engineering</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- File Upload Section -->
+            <section class="card">
+                <h2>?? Upload MOP Document</h2>
+                <div class="form-group">
+                    <label for="mopFile">Select your MOP document (TXT, DOC, DOCX, PDF):</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="mopFile" class="file-input" accept=".txt,.doc,.docx,.pdf">
+                        <label for="mopFile" class="file-label">
+                            <span class="file-icon">??</span>
+                            <span id="fileName">Choose a file...</span>
+                        </label>
+                    </div>
+                    <div id="fileInfo" class="file-info"></div>
+                </div>
+            </section>
+
+            <!-- API Configuration Section -->
+            <section class="card">
+                <h2>?? Tavily API Configuration</h2>
+                <div class="form-group">
+                    <label for="apiKey">Enter your Tavily API Key:</label>
+                    <input type="password" id="apiKey" class="form-control" placeholder="tvly-xxxxxxxxxxxxx">
+                    <small class="help-text">Your API key is stored locally and never sent to any server except Tavily.</small>
+                </div>
+            </section>
+
+            <!-- Analyze Button -->
+            <section class="action-section">
+                <button id="analyzeBtn" class="btn btn-primary">
+                    <span class="btn-icon">??</span>
+                    Analyze MOP Document
+                </button>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing your MOP document...</p>
+                <p class="loading-detail" id="loadingDetail">Extracting sections...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" style="display: none;">
+                <!-- Overall Score Card -->
+                <section class="card results-card">
+                    <h2>?? Overall Analysis Results</h2>
+                    <div class="score-summary">
+                        <div class="score-item">
+                            <div class="score-label">Overall Score</div>
+                            <div class="score-value" id="overallScore">-</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-label">Risk Level</div>
+                            <div class="risk-badge" id="riskLevel">-</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Detailed Scores -->
+                <section class="card results-card">
+                    <h2>?? Detailed Section Scores</h2>
+                    <div class="section-scores">
+                        <div class="section-score-card">
+                            <h3>?? Pre-Checks</h3>
+                            <div class="score-circle" id="preCheckScore">-</div>
+                            <div class="score-details" id="preCheckDetails"></div>
+                        </div>
+                        <div class="section-score-card">
+                            <h3>?? Operation Steps</h3>
+                            <div class="score-circle" id="operationScore">-</div>
+                            <div class="score-details" id="operationDetails"></div>
+                        </div>
+                        <div class="section-score-card">
+                            <h3>?? Rollback Steps</h3>
+                            <div class="score-circle" id="rollbackScore">-</div>
+                            <div class="score-details" id="rollbackDetails"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recommendations -->
+                <section class="card results-card">
+                    <h2>?? Recommendations</h2>
+                    <div id="recommendationsContainer"></div>
+                </section>
+
+                <!-- Industry Best Practices -->
+                <section class="card results-card">
+                    <h2>?? Industry Best Practices</h2>
+                    <div id="bestPracticesContainer"></div>
+                </section>
+
+                <!-- Export Button -->
+                <section class="action-section">
+                    <button id="exportBtn" class="btn btn-secondary">
+                        <span class="btn-icon">??</span>
+                        Export Report
+                    </button>
+                </section>
+            </div>
+        </div>
+
+        <footer>
+            <p>? 2025 ITIL 4 Change Enablement MOP Analyzer | Built with ?? for Telco Operations</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

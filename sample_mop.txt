@@ -1,0 +1,298 @@
+Method of Procedure: IPCORE Router Upgrade
+
+Change Reference: CHG00012345
+Date: 2025-10-31
+Category: IPCORE
+Change Type: Standard
+Risk Level: Medium
+
+==================================================
+PRE-CHECKS
+==================================================
+
+1. Impact Assessment
+   - Verify impact assessment document approved by Network Operations Manager
+   - Confirm customer impact is minimal (redundant paths available)
+   - Review affected services: 150 enterprise customers on redundant links
+
+2. Risk Analysis
+   - Risk level: Medium
+   - Primary risk: BGP session disruption during upgrade
+   - Mitigation: Redundant paths in place, traffic will reroute automatically
+   - Secondary risk: Configuration rollback may take 15 minutes
+
+3. Dependencies Check
+   - Verify all dependent routers are operational
+   - Confirm MPLS paths are stable
+   - Check peer BGP routers have redundant sessions
+   - Validate monitoring systems are functional
+
+4. Backout Plan Confirmation
+   - Configuration backup completed: router-config-20251031-backup.cfg
+   - Rollback procedure tested in lab environment
+   - Estimated rollback time: 15 minutes
+   - Backout decision point: After step 5 in operation steps
+
+5. Resource Availability
+   - Network Engineer: John Smith (primary)
+   - Network Engineer: Sarah Johnson (backup)
+   - NOC Team: Available for monitoring
+   - Vendor Support: On standby (Ticket #VEN-98765)
+
+6. Stakeholder Approval
+   - Change Advisory Board: Approved on 2025-10-25
+   - Service Delivery Manager: Approved
+   - Security Team: Security assessment completed
+
+7. Service Impact Communication
+   - Customer notification sent: 2025-10-28
+   - Internal teams notified: Network Operations, NOC, Service Desk
+   - Change window: 2025-10-31 02:00-04:00 AM EST
+
+8. Testing Environment Validation
+   - Lab testing completed successfully
+   - New firmware version: 15.4.3 validated
+   - Configuration changes tested
+   - BGP convergence time measured: 45 seconds
+
+9. Change Window Scheduling
+   - Scheduled maintenance window: 2025-10-31 02:00-04:00 AM EST
+   - Duration: 2 hours
+   - Expected completion: 3:00 AM EST
+   - Business justification: Off-peak hours, minimal customer impact
+
+10. Backup Verification
+    - Full configuration backup completed: 2025-10-30 23:00
+    - Backup stored in: /backups/ipcore/router-core-01/
+    - Backup tested: Restoration verified in lab
+    - Version control: Git commit SHA: a3f5b9c
+
+==================================================
+OPERATION STEPS
+==================================================
+
+1. Pre-Implementation Verification (02:00 AM - 02:10 AM)
+   Command: show ip bgp summary
+   Expected outcome: All BGP sessions in Established state
+   Validation: Verify neighbor count matches baseline (24 neighbors)
+   Success criteria: No sessions in Active or Idle state
+   Time estimate: 5 minutes
+
+2. Enable Configuration Mode (02:10 AM - 02:12 AM)
+   Command: configure terminal
+   Expected outcome: Router enters configuration mode
+   Validation: Prompt changes to (config)#
+   Success criteria: Configuration mode active
+   Time estimate: 1 minute
+
+3. Backup Current Configuration (02:12 AM - 02:15 AM)
+   Command: copy running-config tftp://backup-server/router-core-01-pre-change.cfg
+   Expected outcome: Configuration copied successfully
+   Validation: Verify file size > 0 and compare checksum
+   Success criteria: Backup file created with correct timestamp
+   Time estimate: 3 minutes
+   Note: Critical step - do not proceed without successful backup
+
+4. Update BGP Configuration (02:15 AM - 02:25 AM)
+   Commands:
+   - router bgp 65001
+   - neighbor 10.1.1.2 maximum-prefix 500000 warning-only
+   - neighbor 10.1.1.2 route-map FILTER-IN in
+   Expected outcome: BGP configuration updated
+   Validation: show run | section bgp
+   Success criteria: New configuration visible in running-config
+   Time estimate: 10 minutes
+   Dependencies: Step 3 must be completed successfully
+
+5. Apply MPLS Configuration Changes (02:25 AM - 02:35 AM)
+   Commands:
+   - mpls traffic-eng tunnels
+   - mpls label protocol ldp
+   Expected outcome: MPLS TE enabled
+   Validation: show mpls traffic-eng tunnels
+   Success criteria: MPLS tunnels established
+   Time estimate: 10 minutes
+   Note: Monitor for LDP session disruptions
+
+6. Verify Routing Table Stability (02:35 AM - 02:40 AM)
+   Command: show ip route summary
+   Expected outcome: Route count matches baseline (+/- 5%)
+   Validation: Compare with pre-change baseline
+   Success criteria: No significant route flapping
+   Time estimate: 5 minutes
+   Decision point: If routes unstable, proceed to rollback
+
+7. Check BGP Neighbor Status (02:40 AM - 02:45 AM)
+   Command: show ip bgp summary
+   Expected outcome: All BGP neighbors in Established state
+   Validation: Compare neighbor uptime with baseline
+   Success criteria: No neighbors down or flapping
+   Time estimate: 5 minutes
+   Critical checkpoint: Must pass before proceeding
+
+8. Verify MPLS Label Distribution (02:45 AM - 02:50 AM)
+   Command: show mpls ldp neighbor
+   Expected outcome: All LDP sessions operational
+   Validation: show mpls forwarding-table
+   Success criteria: MPLS labels distributed correctly
+   Time estimate: 5 minutes
+
+9. Monitor Traffic Flow (02:50 AM - 02:55 AM)
+   Command: show interfaces | include rate
+   Expected outcome: Traffic rates within normal parameters
+   Validation: Compare with baseline traffic patterns
+   Success criteria: No traffic blackholing
+   Time estimate: 5 minutes
+   Note: Coordinate with NOC for customer impact check
+
+10. Save Configuration (02:55 AM - 03:00 AM)
+    Command: write memory
+    Expected outcome: Configuration saved to NVRAM
+    Validation: copy running-config startup-config
+    Success criteria: Confirmation message "OK"
+    Time estimate: 5 minutes
+    Final step: Ensures changes persist after reboot
+
+11. Post-Implementation Verification (03:00 AM - 03:15 AM)
+    Verification checklist:
+    - All BGP sessions stable for 15 minutes
+    - No route flapping detected
+    - MPLS tunnels established and stable
+    - Customer circuits operational (check top 10)
+    - No alarms in monitoring system
+    - Traffic patterns normal
+    Expected outcome: All checks pass
+    Success criteria: System stable for 15 minutes
+    Time estimate: 15 minutes
+
+==================================================
+ROLLBACK STEPS
+==================================================
+
+Rollback Decision Criteria:
+- More than 2 BGP sessions fail to establish within 10 minutes
+- Traffic loss exceeds 5% of baseline
+- MPLS tunnels fail to establish within 5 minutes
+- Critical customer circuits affected
+- Unplanned service impact detected
+
+Rollback Procedure:
+
+1. Immediate Actions (T+0 minutes)
+   - Announce rollback initiation to bridge and NOC
+   - Stop all ongoing configuration changes
+   - Take snapshot of current state for troubleshooting
+   Command: show tech-support | redirect flash:rollback-snapshot.txt
+   Time estimate: 2 minutes
+
+2. Restore Previous Configuration (T+2 minutes)
+   Command: configure replace tftp://backup-server/router-core-01-pre-change.cfg force
+   Expected outcome: Configuration restored to pre-change state
+   Validation: show running-config | compare
+   Success criteria: Configuration matches backup
+   Time estimate: 5 minutes
+   Critical: This will reload BGP sessions
+
+3. Verify BGP Session Recovery (T+7 minutes)
+   Command: show ip bgp summary
+   Expected outcome: BGP sessions begin to establish
+   Validation: Monitor for Established state
+   Success criteria: All sessions reach Established within 5 minutes
+   Time estimate: 5 minutes
+   Note: Expected convergence time: 45-60 seconds per session
+
+4. Confirm Routing Table Restoration (T+12 minutes)
+   Command: show ip route summary
+   Expected outcome: Route count returns to baseline
+   Validation: Compare with pre-change snapshot
+   Success criteria: Route count within 2% of baseline
+   Time estimate: 3 minutes
+
+5. Verify MPLS Operations (T+15 minutes)
+   Command: show mpls ldp neighbor
+   Expected outcome: LDP sessions re-establish
+   Validation: show mpls forwarding-table
+   Success criteria: MPLS labels operational
+   Time estimate: 3 minutes
+
+6. Monitor Traffic Recovery (T+18 minutes)
+   Command: show interfaces | include rate
+   Expected outcome: Traffic returns to normal patterns
+   Validation: Check monitoring dashboards
+   Success criteria: Traffic within 95% of baseline
+   Time estimate: 3 minutes
+   Coordinate with NOC for customer verification
+
+7. Check Customer Circuit Status (T+21 minutes)
+   - Verify top 10 customer circuits operational
+   - Check for any open trouble tickets
+   - Confirm with NOC that customer complaints are resolved
+   Success criteria: No customer impact
+   Time estimate: 5 minutes
+
+8. Save Rollback Configuration (T+26 minutes)
+   Command: write memory
+   Expected outcome: Configuration saved
+   Validation: Verify startup-config updated
+   Success criteria: Configuration persists
+   Time estimate: 2 minutes
+
+9. Post-Rollback Monitoring (T+28 minutes)
+   - Monitor BGP sessions for 30 minutes
+   - Check for route flapping
+   - Verify no recurring alarms
+   - Coordinate with NOC for extended monitoring
+   Duration: 30 minutes minimum
+   Success criteria: System stable
+
+10. Incident Documentation and Notification
+    - Document rollback reason in change ticket
+    - Update stakeholders on rollback completion
+    - Schedule post-mortem meeting
+    - Create incident report for CAB review
+    - Reschedule change if needed
+
+Post-Rollback Verification Checklist:
+? All BGP sessions stable
+? Routing table matches baseline
+? MPLS operations normal
+? No customer impact
+? No active alarms
+? Traffic patterns normal
+? Configuration saved
+? Stakeholders notified
+? Incident documentation complete
+
+Lessons Learned Process:
+- Conduct root cause analysis within 48 hours
+- Update MOP with findings
+- Review rollback effectiveness
+- Identify preventive measures
+- Share learnings with team
+
+==================================================
+COMMUNICATION PLAN
+==================================================
+
+Before Change:
+- T-72 hours: Customer notification
+- T-24 hours: Internal team reminder
+- T-2 hours: Bridge opened for implementation
+
+During Change:
+- T+0: Implementation start notification
+- Every 15 minutes: Status update
+- Any issues: Immediate escalation
+
+After Change:
+- T+end: Completion notification
+- T+24 hours: Post-implementation report
+
+Emergency Contacts:
+- Network Operations Manager: +1-555-0100
+- Senior Network Engineer: +1-555-0101
+- Vendor Support: +1-555-0102 (Case #VEN-98765)
+
+==================================================
+END OF METHOD OF PROCEDURE
+==================================================
