@@ -1,0 +1,431 @@
+# Example MOP Document - IPCORE Router Upgrade
+
+**Change Request ID:** CR-2024-001234
+**Domain:** IPCORE
+**Risk Level:** Medium
+**Maintenance Window:** 2024-01-20 02:00-06:00 UTC
+**Impact:** Minimal - Redundant path available
+
+---
+
+## Pre-Checks
+
+### Prerequisites
+1. Verify secondary router is active and handling traffic
+2. Confirm backup of current router configuration completed within last 24 hours
+3. Validate new firmware version 7.2.1 is downloaded and checksum verified
+4. Ensure monitoring systems are operational and alerting is enabled
+
+### Risk Assessment
+- Risk Level: Medium
+- Service Impact: None (redundant path active)
+- Backout Time: 30 minutes
+- Point of No Return: After firmware flash completes (Step 8)
+
+### Approvals Required
+- Network Operations Manager: John Smith (approved 2024-01-15)
+- Change Advisory Board: Approved in CAB meeting 2024-01-12
+- Customer Impact Assessment: None expected
+
+### Contact Information
+- Primary Engineer: Jane Doe (mobile: +1-555-0100)
+- Backup Engineer: Bob Wilson (mobile: +1-555-0101)
+- NOC Escalation: +1-555-0200
+- Vendor Support: Cisco TAC (800-553-2447, Case #12345678)
+
+### Pre-Change Validations
+1. Verify BGP sessions are stable on backup router
+2. Confirm traffic is balanced across redundant links
+3. Check no other maintenance activities scheduled in maintenance window
+4. Validate rollback procedure has been tested in lab environment
+5. Confirm backup router has capacity to handle 100% traffic load
+
+### Backout Triggers
+- Firmware flash fails or router does not boot
+- Post-upgrade verification fails (see Operation Steps verification section)
+- Router is unreachable after reboot
+- Critical alarms appear that cannot be cleared within 15 minutes
+- Performance degradation >20% compared to baseline
+
+---
+
+## Operation Steps
+
+### Step 1: Pre-Implementation Verification
+**Action:** Verify all pre-checks completed and documented
+**Expected Result:** All pre-checks show green status
+**Verification:** Review checklist, confirm with NOC
+**Duration:** 5 minutes
+
+### Step 2: Announce Maintenance Window
+**Action:** Send maintenance notification to NOC and stakeholders
+**Command:** Email template "IPCORE Router Upgrade - CR-2024-001234"
+**Expected Result:** Acknowledgment from NOC within 5 minutes
+**Duration:** 5 minutes
+
+### Step 3: Verify Current State
+**Action:** Login to router and capture current state
+**Commands:**
+```
+show version
+show running-config
+show ip bgp summary
+show ip route summary
+show interfaces status
+```
+**Expected Result:** All interfaces UP, BGP sessions established
+**Verification:** Save output to CR ticket
+**Duration:** 10 minutes
+
+### Step 4: Redirect Traffic to Backup Router
+**Action:** Increase BGP local preference on backup router
+**Commands:**
+```
+router1# configure terminal
+router1(config)# route-map PREFER_BACKUP permit 10
+router1(config-route-map)# set local-preference 150
+router1(config)# end
+router1# clear ip bgp * soft
+```
+**Expected Result:** Traffic shifts to backup router within 2 minutes
+**Verification:** Monitor traffic graphs, confirm <5% traffic on primary router
+**Duration:** 15 minutes
+**Rollback:** If traffic does not shift, execute rollback step 1
+
+### Step 5: Verify Traffic Shift
+**Action:** Confirm traffic successfully moved to backup router
+**Verification Steps:**
+- Check interface counters on primary router (should be minimal)
+- Verify backup router interface utilization increased
+- Confirm no packet loss or errors in monitoring
+**Expected Result:** <5% utilization on primary router
+**Duration:** 10 minutes
+**Safety Check:** If packet loss >0.1%, halt and execute rollback
+
+### Step 6: Place Primary Router in Maintenance Mode
+**Action:** Disable BGP and OSPF on primary router
+**Commands:**
+```
+router1# configure terminal
+router1(config)# router bgp 65001
+router1(config-router)# shutdown
+router1(config)# router ospf 100
+router1(config-router)# shutdown
+router1(config)# end
+```
+**Expected Result:** Routing protocols gracefully shutdown
+**Verification:** Verify no active BGP or OSPF sessions
+**Duration:** 5 minutes
+
+### Step 7: Upload New Firmware
+**Action:** Transfer firmware image to router
+**Commands:**
+```
+router1# copy tftp://10.1.1.100/ios-7.2.1.bin flash:
+```
+**Expected Result:** File transfer completes successfully, MD5 checksum matches
+**Verification:** 
+```
+router1# verify /md5 flash:ios-7.2.1.bin
+```
+**Expected MD5:** a1b2c3d4e5f6789012345678901234ab
+**Duration:** 20 minutes
+**Safety Check:** If transfer fails or MD5 mismatch, re-download and retry
+
+### Step 8: Flash New Firmware
+**Action:** Set boot system to new image and reload
+**Commands:**
+```
+router1# configure terminal
+router1(config)# boot system flash:ios-7.2.1.bin
+router1(config)# end
+router1# copy running-config startup-config
+router1# reload in 2
+```
+**Expected Result:** Router schedules reload in 2 minutes
+**Duration:** 2 minutes
+**Point of No Return:** Once reload executes, must proceed or execute hardware rollback
+
+### Step 9: Monitor Router Reboot
+**Action:** Monitor router coming back online
+**Expected Duration:** 8-12 minutes for reboot cycle
+**Verification:**
+- Ping router management IP every 30 seconds
+- Console connection shows boot process
+- Router accessible via SSH after boot completes
+**Timeout:** If router not responsive after 20 minutes, execute rollback step 4
+
+### Step 10: Post-Upgrade Verification
+**Action:** Verify router booted with correct firmware and configuration
+**Commands:**
+```
+show version | include Version
+show running-config
+show ip interface brief
+```
+**Expected Results:**
+- Version shows 7.2.1
+- All interfaces are up
+- Configuration matches saved config
+**Duration:** 10 minutes
+
+### Step 11: Re-enable Routing Protocols
+**Action:** Enable BGP and OSPF
+**Commands:**
+```
+router1# configure terminal
+router1(config)# router bgp 65001
+router1(config-router)# no shutdown
+router1(config)# router ospf 100
+router1(config-router)# no shutdown
+router1(config)# end
+```
+**Expected Result:** BGP and OSPF sessions establish
+**Verification:** 
+```
+show ip bgp summary
+show ip ospf neighbor
+```
+**Duration:** 10 minutes
+**Safety Check:** All BGP sessions should establish within 5 minutes
+
+### Step 12: Restore Normal Routing
+**Action:** Remove BGP local preference on backup router
+**Commands:**
+```
+router2# configure terminal
+router2(config)# no route-map PREFER_BACKUP permit 10
+router2(config)# end
+router2# clear ip bgp * soft
+```
+**Expected Result:** Traffic rebalances to both routers
+**Duration:** 10 minutes
+
+### Step 13: Final Verification
+**Action:** Comprehensive verification of router functionality
+**Verification Steps:**
+1. Verify all BGP sessions established and stable for 5+ minutes
+2. Check all OSPF adjacencies are full
+3. Verify routing table is complete
+4. Monitor for any error counters or CRC errors on interfaces
+5. Check system logs for any critical errors
+6. Verify CPU and memory utilization within normal ranges (<40% CPU)
+7. Confirm traffic is balanced approximately 50/50 with backup router
+
+**Commands:**
+```
+show ip bgp summary
+show ip ospf neighbor
+show ip route summary
+show interfaces | include error
+show logging | include CRITICAL|ERROR
+show processes cpu sorted
+show memory statistics
+```
+
+**Expected Results:**
+- All BGP sessions: Established
+- All OSPF neighbors: FULL/DR or FULL/BDR
+- No increase in error counters
+- CPU <40%, Memory <70%
+- No critical errors in logs
+
+**Duration:** 15 minutes
+**Decision Point:** If any verification fails, execute rollback
+
+### Step 14: Monitoring Period
+**Action:** Monitor for 30 minutes post-implementation
+**Verification:** 
+- No alerts or alarms
+- Traffic patterns stable
+- Performance metrics within baseline
+**Duration:** 30 minutes
+
+### Step 15: Close Maintenance Window
+**Action:** Send completion notification
+**Update:** Update change ticket with completion status
+**Duration:** 10 minutes
+
+**Total Implementation Time:** Approximately 3 hours
+
+---
+
+## Rollback Steps
+
+### Rollback Trigger Conditions
+Execute rollback immediately if:
+1. Router does not boot after firmware flash (>20 minutes)
+2. Post-upgrade verification failures cannot be resolved within 15 minutes
+3. Critical alarms that impact service
+4. Performance degradation >20% from baseline
+5. Any unexpected behavior affecting redundancy or failover capability
+
+### Estimated Rollback Time
+- **RTO (Recovery Time Objective):** 30 minutes
+- **RPO (Recovery Point Objective):** Configuration current as of maintenance start
+
+### Rollback Step 1: Emergency Traffic Redirect (if needed during steps 4-6)
+**Condition:** Issue detected before firmware flash
+**Action:** Ensure all traffic on backup router and keep primary router offline
+**Commands:**
+```
+router1# configure terminal
+router1(config)# interface range GigabitEthernet 0/0-1
+router1(config-if-range)# shutdown
+```
+**Verification:** Confirm 100% traffic on backup router
+**Duration:** 5 minutes
+**Next:** Investigate issue before proceeding
+
+### Rollback Step 2: Abort Reload (if within 2-minute window)
+**Condition:** Issue identified after "reload in 2" but before actual reload
+**Action:** Cancel scheduled reload
+**Command:**
+```
+router1# reload cancel
+```
+**Verification:** Confirm reload canceled
+**Duration:** <1 minute
+**Next:** Assess issue and decide whether to retry or postpone
+
+### Rollback Step 3: Boot Previous Firmware (if new firmware fails)
+**Condition:** Router won't boot with new firmware or shows critical issues
+**Action:** Access via console, interrupt boot process, boot old firmware
+**Console Commands:**
+```
+rommon 1> boot flash:ios-7.1.3.bin
+```
+**Alternative:** If image corrupted, TFTP boot old image:
+```
+rommon 1> IP_ADDRESS=10.1.1.50
+rommon 2> IP_SUBNET_MASK=255.255.255.0
+rommon 3> DEFAULT_GATEWAY=10.1.1.1
+rommon 4> TFTP_SERVER=10.1.1.100
+rommon 5> TFTP_FILE=ios-7.1.3.bin
+rommon 6> tftpdnld
+rommon 7> boot
+```
+**Duration:** 15-20 minutes
+**Verification:** Router boots with old firmware version
+
+### Rollback Step 4: Restore Configuration from Backup
+**Condition:** Configuration issues or unexpected behavior
+**Action:** Restore last known good configuration
+**Commands:**
+```
+router1# configure replace flash:backup-config-20240119.cfg force
+```
+**Verification:** Compare running-config with backup
+**Duration:** 5 minutes
+
+### Rollback Step 5: Re-enable Routing Protocols
+**Action:** Ensure BGP and OSPF are active
+**Commands:**
+```
+router1# configure terminal
+router1(config)# router bgp 65001
+router1(config-router)# no shutdown
+router1(config)# router ospf 100
+router1(config-router)# no shutdown
+router1(config)# end
+```
+**Verification:** BGP and OSPF sessions establish
+**Duration:** 5 minutes
+
+### Rollback Step 6: Verify Rollback Success
+**Action:** Comprehensive verification
+**Verification Steps:**
+1. Confirm router running previous firmware version
+2. Verify all BGP sessions established
+3. Verify OSPF adjacencies full
+4. Check no critical errors in logs
+5. Verify interfaces operational
+6. Confirm configuration matches backup
+
+**Commands:**
+```
+show version | include Version
+show ip bgp summary
+show ip ospf neighbor
+show running-config | compare flash:backup-config-20240119.cfg
+```
+
+**Expected Results:**
+- Version: 7.1.3 (previous version)
+- All routing protocols operational
+- Configuration matches backup
+
+**Duration:** 10 minutes
+
+### Rollback Step 7: Normalize Traffic Distribution
+**Action:** Restore normal traffic distribution across both routers
+**Commands (on backup router):**
+```
+router2# configure terminal
+router2(config)# no route-map PREFER_BACKUP permit 10
+router2(config)# end
+router2# clear ip bgp * soft
+```
+**Verification:** Traffic balanced across both routers
+**Duration:** 10 minutes
+
+### Rollback Step 8: Post-Rollback Monitoring
+**Action:** Monitor for 30 minutes to ensure stability
+**Verification:**
+- No alerts or alarms
+- Traffic patterns normal
+- All routing stable
+**Duration:** 30 minutes
+
+### Rollback Step 9: Update Documentation and Schedule Retry
+**Action:** 
+1. Document reason for rollback in change ticket
+2. Capture all logs and diagnostic output
+3. Open vendor support case if firmware issue suspected
+4. Schedule post-mortem review
+5. Plan retry with revised procedure if needed
+
+**Duration:** 20 minutes
+
+### Rollback Communication Plan
+**Immediate Actions:**
+1. Notify NOC of rollback initiation
+2. Update change ticket with rollback status
+3. Send email to stakeholders explaining situation
+
+**Post-Rollback:**
+1. Send completion notification with rollback summary
+2. Schedule debrief meeting within 24 hours
+3. Update change calendar with new implementation date (if applicable)
+
+### Vendor Escalation (if required)
+**Cisco TAC Contact:** 800-553-2447
+**Case Number:** 12345678
+**Escalation:** If rollback fails or hardware issues suspected, escalate immediately to TAC and on-call network architect
+
+**Contact:** Network Architect On-Call: +1-555-0300
+
+---
+
+## Post-Implementation Review
+
+### Success Criteria
+- [ ] Router running firmware version 7.2.1
+- [ ] All BGP sessions established and stable
+- [ ] All OSPF adjacencies full
+- [ ] No critical errors in system logs
+- [ ] Traffic balanced with backup router
+- [ ] No performance degradation
+- [ ] All verification steps passed
+- [ ] Documentation updated
+
+### Lessons Learned Section
+To be completed after implementation.
+
+---
+
+**Document Version:** 1.2
+**Last Updated:** 2024-01-15
+**Author:** Jane Doe, Senior Network Engineer
+**Reviewed By:** John Smith, Network Operations Manager
+**Approved By:** Change Advisory Board (2024-01-12)
