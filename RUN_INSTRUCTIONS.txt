@@ -1,0 +1,172 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║       TELCO MOP ANALYSIS AGENT - RUN INSTRUCTIONS                    ║
+║       Production-Ready Full-Stack Application                        ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📁 REPOSITORY STRUCTURE
+────────────────────────────────────────────────────────────────────────
+✓ backend/          - Node.js + TypeScript API with ITIL4 scoring
+✓ frontend/         - React + Vite SPA
+✓ samples/          - 3 sample DOCX files (full, partial, poor MOPs)
+✓ scripts/          - Demo script, setup helpers, API tests
+✓ docs/             - API documentation
+✓ .github/          - CI/CD pipeline (GitHub Actions)
+✓ docker-compose.yml - Multi-container orchestration
+
+🚀 QUICK START (< 5 MINUTES)
+────────────────────────────────────────────────────────────────────────
+
+1. CONFIGURE ENVIRONMENT
+   cp .env.example .env
+   # Edit .env and set:
+   #   X_API_KEY=your-secure-api-key-here
+   #   TAVILY_API_KEY=your-tavily-key  (optional but recommended)
+
+2. START SERVICES
+   docker-compose up -d
+
+3. WAIT FOR SERVICES (30 seconds)
+   docker-compose ps  # All should show "Up (healthy)"
+
+4. ACCESS APPLICATION
+   • Frontend:  http://localhost:8080
+   • Backend:   http://localhost:3000
+   • API Docs:  http://localhost:3000/api/docs
+
+5. TEST WITH SAMPLE
+   curl -X POST http://localhost:3000/api/analyze \
+     -H "X-API-KEY: your-api-key" \
+     -F "mop=@samples/full_mop.docx" \
+     -F "category=IPCORE" | jq
+
+📖 DOCUMENTATION
+────────────────────────────────────────────────────────────────────────
+• README.md           - Complete guide with ITIL4 mapping
+• QUICKSTART.md       - 5-minute setup guide
+• docs/API.md         - Full API reference with examples
+• CONTRIBUTING.md     - Development guidelines
+• PROJECT_SUMMARY.md  - Architecture and technical overview
+• DEPLOYMENT_CHECKLIST.md - Production deployment guide
+
+🧪 TESTING
+────────────────────────────────────────────────────────────────────────
+
+# Unit tests
+cd backend && npm test
+
+# API smoke test
+./scripts/test-api.sh
+
+# Demo script (formatted output)
+cd scripts && npm install && node demo.js ../samples/full_mop.docx ipcore
+
+🐳 DOCKER COMMANDS
+────────────────────────────────────────────────────────────────────────
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f backend
+
+# Stop services
+docker-compose down
+
+# Rebuild after code changes
+docker-compose build
+docker-compose up -d
+
+# Clean everything
+docker-compose down -v
+
+🛠️ LOCAL DEVELOPMENT (without Docker)
+────────────────────────────────────────────────────────────────────────
+
+BACKEND (Terminal 1):
+  cd backend
+  npm install
+  cp .env.development .env
+  npm run dev          # Runs on port 3000
+
+FRONTEND (Terminal 2):
+  cd frontend
+  npm install
+  cp .env.development .env
+  npm run dev          # Runs on port 5173
+
+📊 SCORING ALGORITHM
+────────────────────────────────────────────────────────────────────────
+Each MOP section scored 0-10 based on:
+  • Presence (30%)      - Content exists and is substantial
+  • Clarity (25%)       - Steps are specific and actionable
+  • Verifiability (20%) - Includes validation steps
+  • Safety (15%)        - Risk assessment and impact analysis
+  • Compliance (10%)    - Matches ITIL4 and Telco best practices
+
+Total Score = PreChecks(35%) + OpSteps(40%) + Rollback(25%)
+
+🔐 SECURITY NOTES
+────────────────────────────────────────────────────────────────────────
+• Set strong X_API_KEY (min 32 chars)
+• Never commit .env files
+• Rate limited to 100 req/15min by default
+• Max file size: 10MB
+• Only .docx files accepted
+
+🌐 SUPPORTED TELCO CATEGORIES
+────────────────────────────────────────────────────────────────────────
+1. IPCORE
+2. Packet Core
+3. Billing and Revenue → Charging/Revenue Management
+4. Radio Network
+5. Transmission Network
+6. DevOps and Systems (OSS and BSS)
+7. IT
+8. Cyber Security
+9. Data Engineering
+
+📦 SAMPLE FILES
+────────────────────────────────────────────────────────────────────────
+samples/full_mop.docx    - Complete MOP (expected score: 8-9/10)
+samples/partial_mop.docx - MOP with gaps (expected score: 5-6/10)
+samples/poor_mop.docx    - Minimal MOP (expected score: 2-3/10)
+
+❓ TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────
+
+Backend won't start:
+  ✓ Check .env file exists with X_API_KEY
+  ✓ docker-compose logs backend
+
+Frontend shows 401 errors:
+  ✓ Ensure VITE_API_KEY matches backend X_API_KEY
+
+Tavily not working:
+  ✓ Check TAVILY_API_KEY is set
+  ✓ App works without it, just reduced category scoring
+
+Port conflicts:
+  ✓ Edit docker-compose.yml to change ports
+  ✓ Default: 3000 (backend), 8080 (frontend)
+
+🆘 SUPPORT
+────────────────────────────────────────────────────────────────────────
+• GitHub Issues: <repository-url>/issues
+• Documentation: /docs directory
+• API Reference: http://localhost:3000/api/docs (when running)
+
+✅ DEPLOYMENT
+────────────────────────────────────────────────────────────────────────
+See DEPLOYMENT_CHECKLIST.md for production deployment guide.
+
+Platforms supported:
+  • Docker Compose (simple deployment)
+  • Kubernetes (production)
+  • AWS ECS/Fargate
+  • Azure Container Instances
+  • GCP Cloud Run
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  Built with ❤️ for Telco Change Management Excellence               ║
+║  License: MIT | Version: 1.0.0                                       ║
+╚══════════════════════════════════════════════════════════════════════╝
