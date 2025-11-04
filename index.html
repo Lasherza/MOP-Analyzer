@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telco MOP Analysis Agent - ITIL 4</title>
+    <style>
+        /* Mobile-first, accessible styling */
+        :root {
+            --primary: #0066cc;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light-bg: #f8f9fa;
+            --border: #dee2e6;
+            --text: #212529;
+            --text-secondary: #6c757d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--light-bg);
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+
+        h2 {
+            color: var(--text);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .label-note {
+            font-weight: 400;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0052a3;
+        }
+
+        button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .score-card {
+            text-align: center;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 6px;
+            border: 2px solid var(--border);
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .score-excellent { color: var(--success); }
+        .score-good { color: #17a2b8; }
+        .score-warning { color: var(--warning); }
+        .score-poor { color: var(--danger); }
+
+        .recommendations {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .references {
+            margin-top: 1rem;
+        }
+
+        .references a {
+            color: var(--primary);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .references a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Telco MOP Analysis Agent</h1>
+        <p class="subtitle">ITIL 4-based analysis of Maintenance and Operations Procedures</p>
+
+        <!-- Upload Section -->
+        <div class="form-group">
+            <label for="mopFile">Upload MOP Document (.docx)</label>
+            <input type="file" id="mopFile" accept=".docx" />
+        </div>
+
+        <!-- Domain Selection -->
+        <div class="form-group">
+            <label for="domain">Select Telco Domain</label>
+            <select id="domain">
+                <option value="IPCORE">IPCORE</option>
+                <option value="Packet Core">Packet Core</option>
+                <option value="Billing and Revenue → Charging/Revenue Management">Billing and Revenue → Charging/Revenue Management</option>
+                <option value="Radio Network">Radio Network</option>
+                <option value="Transmission Network">Transmission Network</option>
+                <option value="DevOps and Systems (OSS and BSS)">DevOps and Systems (OSS and BSS)</option>
+                <option value="IT">IT</option>
+                <option value="Cyber Security">Cyber Security</option>
+                <option value="Data Engineering">Data Engineering</option>
+            </select>
+        </div>
+
+        <!-- API Configuration -->
+        <div class="form-group">
+            <label for="apiKey">
+                Tavily API Key 
+                <span class="label-note">(For production: keep keys server-side only)</span>
+            </label>
+            <input type="password" id="apiKey" placeholder="tvly-xxxxx..." />
+            <div class="alert alert-info" style="margin-top: 0.5rem; font-size: 0.85rem;">
+                💡 This prototype accepts API keys client-side for testing. In production, move all API calls to server-side endpoints (see README.md).
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="useServer" />
+                Use server-side proxy (recommended)
+            </label>
+        </div>
+
+        <!-- Parsed Sections (shown after upload) -->
+        <div id="sectionsContainer" class="hidden">
+            <h2>📝 Extracted MOP Sections</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Review and edit the auto-extracted sections before analysis:
+            </p>
+
+            <div class="form-group">
+                <label for="prechecksText">Pre-Checks</label>
+                <textarea id="prechecksText" rows="8"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="operationText">Operation Steps</label>
+                <textarea id="operationText" rows="10"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="rollbackText">Rollback Steps</label>
+                <textarea id="rollbackText" rows="8"></textarea>
+            </div>
+
+            <button id="analyzeBtn">
+                <span id="analyzeText">🔍 Analyze MOP</span>
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsContainer" class="hidden">
+            <h2>📊 Analysis Results</h2>
+
+            <div class="score-grid">
+                <div class="score-card">
+                    <div class="score-label">Pre-Checks</div>
+                    <div class="score-value" id="scorePreChecks">-</div>
+                    <div>/10</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-label">Operation Steps</div>
+                    <div class="score-value" id="scoreOperation">-</div>
+                    <div>/10</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-label">Rollback Steps</div>
+                    <div class="score-value" id="scoreRollback">-</div>
+                    <div>/10</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">💡 Recommendations</h3>
+                <div id="recommendationsText"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">📖 Explanation</h3>
+                <div id="explanationText"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 0.5rem;">🔗 References</h3>
+                <div class="references" id="referencesLinks"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include mammoth.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+
+    <script>
+        // ============================================================================
+        // MOP ANALYSIS AGENT - JAVASCRIPT
+        // ============================================================================
+        
+        // PRODUCTION NOTES FOR DEVELOPERS:
+        // 1. Replace direct Tavily API calls with server-side proxy endpoints
+        // 2. Never expose API keys in frontend code
+        // 3. Implement rate limiting and authentication on server endpoints
+        // 4. Add CORS configuration for production domains
+        // 5. Consider adding file size limits and virus scanning for uploads
+        // 6. Add error logging and monitoring
+        
+        // ============================================================================
+        // CONFIGURATION
+        // ============================================================================
+        
+        const TAVILY_API_BASE = 'https://api.tavily.com'; // Replace with actual Tavily endpoint
+        const SERVER_API_BASE = '/api'; // Server-side proxy endpoints
+        
+        // Scoring rubric embedded for LLM evaluation
+        const SCORING_RUBRIC = `
+        You are an expert telco change management analyst following ITIL 4 principles. 
+        Evaluate the provided MOP sections using this rubric:
+
+        **Pre-Checks (0-10 scale):**
+        - Completeness of prerequisites and dependencies (2 points)
+        - Pre-change validations and verification steps (2 points)
+        - Risk assessment and mitigation plan (2 points)
+        - Contact/escalation list and approvals documented (2 points)
+        - Backout triggers and decision criteria clearly defined (2 points)
+        - PENALTIES: -2 for missing verification steps, -2 for no contact points
+
+        **Operation Steps (0-10 scale):**
+        - Clear, unambiguous step descriptions (2 points)
+        - Sequential ordering with dependencies marked (2 points)
+        - Verification/validation after each critical step (2 points)
+        - Idempotency and safety checks (1 point)
+        - Timing windows, automation hooks, or CLI commands specified (2 points)
+        - Impact mitigation steps during execution (1 point)
+        - PENALTIES: -2 for ambiguous steps, -2 for missing verification, -1 for sequencing errors
+
+        **Rollback Steps (0-10 scale):**
+        - Clear, reproducible rollback procedure (2 points)
+        - Automated rollback or detailed runbook (2 points)
+        - Verification steps after rollback (2 points)
+        - Estimated RTO and dependency considerations (2 points)
+        - Communication plan for rollback scenario (1 point)
+        - Trigger conditions for rollback clearly stated (1 point)
+        - PENALTIES: -2 for missing trigger conditions, -2 for no post-rollback validation
+
+        Return ONLY valid JSON in this exact format:
+        {
+          "scores": {
+            "prechecks": <integer 0-10>,
+            "operation": <integer 0-10>,
+            "rollback": <integer 0-10>
+          },
+          "recommendations": "<concise actionable items, 2-4 bullet points>",
+          "explanation": "<one paragraph justification citing specific gaps and strengths>",
+          "references": ["<url1>", "<url2>"],
+          "confidence": "<optional: high|medium|low>"
+        }
+        `.trim();
+
+        // ============================================================================
+        // STATE
+        // ============================================================================
+        
+        let parsedSections = {
+            prechecks: '',
+            operation: '',
+            rollback: ''
+        };
+
+        let browseResults = [];
+
+        // ============================================================================
+        // EVENT LISTENERS
+        // ============================================================================
+        
+        document.getElementById('mopFile').addEventListener('change', handleFileUpload);
+        document.getElementById('analyzeBtn').addEventListener('click', handleAnalyze);
+
+        // ============================================================================
+        // MOP PARSING FUNCTIONS
+        // ============================================================================
+        
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.docx')) {
+                alert('Please upload a .docx file');
+                return;
+            }
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                const text = result.value;
+                
+                // Parse sections from MOP text
+                parsedSections = parseMOPSections(text);
+                
+                // Populate textareas
+                document.getElementById('prechecksText').value = parsedSections.prechecks;
+                document.getElementById('operationText').value = parsedSections.operation;
+                document.getElementById('rollbackText').value = parsedSections.rollback;
+                
+                // Show sections container
+                document.getElementById('sectionsContainer').classList.remove('hidden');
+                document.getElementById('resultsContainer').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Error parsing document:', error);
+                alert('Error parsing document. Please ensure it is a valid .docx file.');
+            }
+        }
+
+        /**
+         * Parse MOP text into three sections: Pre-Checks, Operation Steps, Rollback Steps
+         * Uses heading matching with robust fallbacks
+         */
+        function parseMOPSections(text) {
+            // Normalize text for easier parsing
+            const lines = text.split('\n');
+            
+            // Heading patterns for each section (case-insensitive)
+            const patterns = {
+                prechecks: [
+                    /pre[\s-]*checks?/i,
+                    /prerequisites?/i,
+                    /pre[\s-]*requisites?/i,
+                    /pre[\s-]*conditions?/i,
+                    /validations?/i,
+                    /before\s+you\s+begin/i
+                ],
+                operation: [
+                    /operation\s+steps?/i,
+                    /procedure/i,
+                    /implementation\s+steps?/i,
+                    /execution\s+steps?/i,
+                    /change\s+steps?/i,
+                    /detailed\s+steps?/i,
+                    /steps?/i
+                ],
+                rollback: [
+                    /rollback\s+steps?/i,
+                    /rollback\s+plan/i,
+                    /backout\s+plan/i,
+                    /backout\s+steps?/i,
+                    /recovery\s+steps?/i,
+                    /revert\s+procedure/i
+                ]
+            };
+
+            // Find section boundaries
+            const sections = { prechecks: '', operation: '', rollback: '' };
+            let currentSection = null;
+            let sectionStarts = {};
+
+            lines.forEach((line, index) => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+
+                // Check if line matches any section heading
+                for (const [sectionName, patterns] of Object.entries(patterns)) {
+                    if (patterns.some(pattern => pattern.test(trimmed))) {
+                        sectionStarts[sectionName] = index;
+                        currentSection = sectionName;
+                        return;
+                    }
+                }
+            });
+
+            // Extract content for each section
+            const sectionOrder = ['prechecks', 'operation', 'rollback'];
+            
+            sectionOrder.forEach((sectionName, idx) => {
+                const startIdx = sectionStarts[sectionName];
+                if (startIdx === undefined) return;
+
+                // Find end of section (start of next section or end of document)
+                let endIdx = lines.length;
+                for (let i = idx + 1; i < sectionOrder.length; i++) {
+                    const nextSection = sectionOrder[i];
+                    if (sectionStarts[nextSection] !== undefined) {
+                        endIdx = sectionStarts[nextSection];
+                        break;
+                    }
+                }
+
+                // Extract section content (skip the heading line itself)
+                const sectionLines = lines.slice(startIdx + 1, endIdx);
+                sections[sectionName] = sectionLines.join('\n').trim();
+            });
+
+            // Fallback: if no sections found, try to split by common markers
+            if (!sections.prechecks && !sections.operation && !sections.rollback) {
+                // Simple fallback: first 1/3 = prechecks, middle 1/3 = operation, last 1/3 = rollback
+                const third = Math.floor(lines.length / 3);
+                sections.prechecks = lines.slice(0, third).join('\n').trim();
+                sections.operation = lines.slice(third, third * 2).join('\n').trim();
+                sections.rollback = lines.slice(third * 2).join('\n').trim();
+            }
+
+            return sections;
+        }
+
+        // ============================================================================
+        // ANALYSIS FUNCTIONS
+        // ============================================================================
+        
+        async function handleAnalyze() {
+            // Get current values from textareas (allow user edits)
+            parsedSections.prechecks = document.getElementById('prechecksText').value;
+            parsedSections.operation = document.getElementById('operationText').value;
+            parsedSections.rollback = document.getElementById('rollbackText').value;
+
+            const domain = document.getElementById('domain').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const useServer = document.getElementById('useServer').checked;
+
+            // Basic validation
+            if (!parsedSections.prechecks && !parsedSections.operation && !parsedSections.rollback) {
+                alert('Please upload a MOP document first');
+                return;
+            }
+
+            if (!useServer && !apiKey) {
+                alert('Please provide a Tavily API key or enable server-side proxy');
+                return;
+            }
+
+            // Show loading state
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const analyzeText = document.getElementById('analyzeText');
+            analyzeBtn.disabled = true;
+            analyzeText.innerHTML = '⏳ Analyzing... <span class="loading"></span>';
+
+            try {
+                // Step 1: Browse for best-practice references
+                const browseQuery = `Find authoritative best-practice guidelines for ${domain} change MOPs in telecommunications. Return 6 URLs and 3-5 bullet key expectations for Pre-Checks, Operation Steps, Rollback Steps.`;
+                
+                browseResults = await callTavilyBrowse(browseQuery, apiKey, useServer);
+                
+                // Step 2: LLM Evaluation
+                const evaluationResult = await callTavilyEvaluate(
+                    domain,
+                    parsedSections,
+                    browseResults,
+                    apiKey,
+                    useServer
+                );
+
+                // Display results
+                displayResults(evaluationResult);
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                
+                // Fallback to heuristic scoring
+                const fallbackResult = performFallbackScoring(parsedSections, domain);
+                displayResults(fallbackResult);
+                
+                // Show fallback notice
+                const resultsContainer = document.getElementById('resultsContainer');
+                const notice = document.createElement('div');
+                notice.className = 'alert alert-warning';
+                notice.innerHTML = `
+                    ⚠️ <strong>Fallback Mode:</strong> Unable to connect to Tavily API. 
+                    Displaying heuristic scores based on local analysis. 
+                    Error: ${error.message}
+                `;
+                resultsContainer.insertBefore(notice, resultsContainer.firstChild);
+                
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeText.textContent = '🔍 Analyze MOP';
+            }
+        }
+
+        /**
+         * Call Tavily Browse API
+         * PRODUCTION NOTE: Replace this with server-side endpoint call
+         * Example server endpoint: POST /api/browse
+         * Expected request: { query: string, max_results: number }
+         * Expected response: { results: [{ url, title, snippet, source_type }] }
+         */
+        async function callTavilyBrowse(query, apiKey, useServer) {
+            const endpoint = useServer 
+                ? `${SERVER_API_BASE}/browse`
+                : `${TAVILY_API_BASE}/search`; // Replace with actual Tavily endpoint
+            
+            const requestBody = {
+                query: query,
+                max_results: 6,
+                search_depth: 'advanced',
+                include_domains: ['ietf.org', 'etsi.org', '3gpp.org', 'tmforum.org', 'itil.org']
+            };
+
+            const headers = useServer 
+                ? { 'Content-Type': 'application/json' }
+                : { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}` // Adjust based on Tavily auth method
+                  };
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Browse API failed: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            // Expected format: { results: [{ url, title, snippet }] }
+            return data.results || [];
+        }
+
+        /**
+         * Call Tavily LLM Evaluate API
+         * PRODUCTION NOTE: Replace this with server-side endpoint call
+         * Example server endpoint: POST /api/evaluate
+         * Expected request: { domain, sections, references, instructions }
+         * Expected response: { scores, recommendations, explanation, references, confidence }
+         */
+        async function callTavilyEvaluate(domain, sections, references, apiKey, useServer) {
+            const endpoint = useServer 
+                ? `${SERVER_API_BASE}/evaluate`
+                : `${TAVILY_API_BASE}/chat`; // Replace with actual Tavily LLM endpoint
+
+            // Construct evaluation prompt
+            const prompt = `
+${SCORING_RUBRIC}
+
+**Domain:** ${domain}
+
+**MOP Sections to Evaluate:**
+
+Pre-Checks:
+${sections.prechecks || 'N/A'}
+
+Operation Steps:
+${sections.operation || 'N/A'}
+
+Rollback Steps:
+${sections.rollback || 'N/A'}
+
+**Authoritative References:**
+${references.map(r => `- ${r.title || 'Reference'}: ${r.url}`).join('\n')}
+
+Provide your evaluation as JSON only.
+            `.trim();
+
+            const requestBody = useServer
+                ? {
+                    domain,
+                    sections,
+                    references: references.map(r => r.url),
+                    instructions: SCORING_RUBRIC
+                  }
+                : {
+                    messages: [{ role: 'user', content: prompt }],
+                    model: 'gpt-4', // Adjust based on Tavily's model options
+                    response_format: { type: 'json_object' }
+                  };
+
+            const headers = useServer 
+                ? { 'Content-Type': 'application/json' }
+                : { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                  };
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Evaluate API failed: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            // Parse JSON from LLM response
+            let evaluation;
+            if (useServer) {
+                evaluation = data; // Server already returns parsed JSON
+            } else {
+                // Extract JSON from chat response
+                const content = data.choices?.[0]?.message?.content || '{}';
+                evaluation = JSON.parse(content);
+            }
+
+            return evaluation;
+        }
+
+        /**
+         * Fallback heuristic scoring when Tavily API is unavailable
+         * Uses simple keyword matching and section length analysis
+         */
+        function performFallbackScoring(sections, domain) {
+            const scores = {
+                prechecks: 0,
+                operation: 0,
+                rollback: 0
+            };
+
+            // Pre-Checks scoring heuristics
+            const precheckText = sections.prechecks.toLowerCase();
+            if (precheckText.length > 100) scores.prechecks += 2;
+            if (/prerequisite|dependency|require/i.test(precheckText)) scores.prechecks += 2;
+            if (/verify|validate|check|confirm/i.test(precheckText)) scores.prechecks += 2;
+            if (/risk|impact|assessment/i.test(precheckText)) scores.prechecks += 1;
+            if (/contact|escalat|approval/i.test(precheckText)) scores.prechecks += 2;
+            if (/backup|snapshot|backout/i.test(precheckText)) scores.prechecks += 1;
+
+            // Operation Steps scoring heuristics
+            const operationText = sections.operation.toLowerCase();
+            const operationSteps = operationText.split(/\n|\d+\.|step/).length - 1;
+            if (operationSteps >= 5) scores.operation += 2;
+            if (operationSteps >= 10) scores.operation += 1;
+            if (/verify|validate|check|confirm/i.test(operationText)) scores.operation += 2;
+            if (/command|cli|execute|run/i.test(operationText)) scores.operation += 2;
+            if (/if|then|else|error/i.test(operationText)) scores.operation += 1;
+            if (/wait|timing|duration|window/i.test(operationText)) scores.operation += 1;
+            if (operationText.length > 300) scores.operation += 1;
+
+            // Rollback Steps scoring heuristics
+            const rollbackText = sections.rollback.toLowerCase();
+            if (rollbackText.length > 100) scores.rollback += 2;
+            if (/rollback|revert|restore|undo/i.test(rollbackText)) scores.rollback += 2;
+            if (/verify|validate|check|confirm/i.test(rollbackText)) scores.rollback += 2;
+            if (/trigger|condition|when|if/i.test(rollbackText)) scores.rollback += 1;
+            if (/rto|recovery time|sla/i.test(rollbackText)) scores.rollback += 2;
+            if (/communicat|notify|inform/i.test(rollbackText)) scores.rollback += 1;
+
+            // Cap scores at 10
+            scores.prechecks = Math.min(10, scores.prechecks);
+            scores.operation = Math.min(10, scores.operation);
+            scores.rollback = Math.min(10, scores.rollback);
+
+            // Generate recommendations
+            const recommendations = [];
+            if (scores.prechecks < 7) recommendations.push('Add more comprehensive pre-checks including risk assessment and approval workflow');
+            if (scores.operation < 7) recommendations.push('Include verification steps after each critical operation and specify timing windows');
+            if (scores.rollback < 7) recommendations.push('Define clear rollback trigger conditions and post-rollback validation steps');
+            if (!sections.prechecks) recommendations.push('Pre-checks section is missing or empty');
+            if (!sections.rollback) recommendations.push('Rollback section is missing or empty');
+
+            return {
+                scores: scores,
+                recommendations: recommendations.join('\n• ') || 'MOP appears well-structured. Continue following ITIL 4 best practices.',
+                explanation: `Heuristic analysis for ${domain} domain. Pre-checks score: ${scores.prechecks}/10 (based on presence of prerequisites, validations, and risk assessment). Operation steps: ${scores.operation}/10 (based on step count, verification points, and command details). Rollback: ${scores.rollback}/10 (based on trigger conditions, validation, and RTO specification). This is a basic analysis; use Tavily API for comprehensive evaluation against industry standards.`,
+                references: [
+                    'https://www.axelos.com/certifications/itil-service-management/itil-4-foundation',
+                    'https://www.tmforum.org/'
+                ],
+                confidence: 'low'
+            };
+        }
+
+        /**
+         * Display analysis results in the UI
+         */
+        function displayResults(result) {
+            // Show results container
+            document.getElementById('resultsContainer').classList.remove('hidden');
+
+            // Display scores with color coding
+            const scoreElements = {
+                prechecks: document.getElementById('scorePreChecks'),
+                operation: document.getElementById('scoreOperation'),
+                rollback: document.getElementById('scoreRollback')
+            };
+
+            Object.keys(scoreElements).forEach(key => {
+                const score = result.scores[key];
+                const element = scoreElements[key];
+                element.textContent = score;
+                
+                // Color coding
+                element.className = 'score-value';
+                if (score >= 8) element.classList.add('score-excellent');
+                else if (score >= 6) element.classList.add('score-good');
+                else if (score >= 4) element.classList.add('score-warning');
+                else element.classList.add('score-poor');
+            });
+
+            // Display recommendations
+            const recommendationsEl = document.getElementById('recommendationsText');
+            recommendationsEl.innerHTML = result.recommendations.split('\n').map(r => 
+                r.trim() ? `<p>• ${r.replace(/^•\s*/, '')}</p>` : ''
+            ).join('');
+
+            // Display explanation
+            const explanationEl = document.getElementById('explanationText');
+            explanationEl.innerHTML = `<p>${result.explanation}</p>`;
+            if (result.confidence) {
+                explanationEl.innerHTML += `<p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);"><strong>Confidence:</strong> ${result.confidence}</p>`;
+            }
+
+            // Display references
+            const referencesEl = document.getElementById('referencesLinks');
+            if (result.references && result.references.length > 0) {
+                referencesEl.innerHTML = result.references.map(url => 
+                    `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+                ).join('');
+            } else {
+                referencesEl.innerHTML = '<p style="color: var(--text-secondary);">No references available</p>';
+            }
+
+            // Scroll to results
+            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ============================================================================
+        // SECURITY AND CORS NOTES FOR DEVELOPERS
+        // ============================================================================
+        
+        /*
+         * IMPORTANT PRODUCTION CONSIDERATIONS:
+         * 
+         * 1. API Key Management:
+         *    - NEVER expose API keys in frontend code
+         *    - Store keys in environment variables on server
+         *    - Use server-side proxy endpoints for all external API calls
+         * 
+         * 2. CORS Configuration:
+         *    - Configure CORS headers on server to allow only your domain
+         *    - Example: Access-Control-Allow-Origin: https://yourdomain.com
+         * 
+         * 3. Rate Limiting:
+         *    - Implement rate limiting on server endpoints
+         *    - Consider using Redis or similar for distributed rate limiting
+         * 
+         * 4. Input Validation:
+         *    - Validate file types and sizes on both client and server
+         *    - Sanitize all user inputs before processing
+         *    - Implement virus scanning for uploaded files
+         * 
+         * 5. Authentication:
+         *    - Add user authentication before allowing analysis
+         *    - Use JWT or session-based auth
+         * 
+         * 6. Logging and Monitoring:
+         *    - Log all API requests and responses
+         *    - Set up error monitoring (e.g., Sentry)
+         *    - Monitor API usage and costs
+         * 
+         * 7. Expected Server Endpoints:
+         * 
+         *    POST /api/browse
+         *    Request: { query: string, max_results: number }
+         *    Response: { results: [{ url: string, title: string, snippet: string, source_type?: string }] }
+         * 
+         *    POST /api/evaluate
+         *    Request: { domain: string, sections: { prechecks, operation, rollback }, references: string[], instructions: string }
+         *    Response: { scores: { prechecks: int, operation: int, rollback: int }, recommendations: string, explanation: string, references: string[], confidence?: string }
+         * 
+         * 8. Error Handling:
+         *    - Implement proper error handling on server
+         *    - Return meaningful error messages
+         *    - Use appropriate HTTP status codes
+         */
+
+    </script>
+</body>
+</html>
